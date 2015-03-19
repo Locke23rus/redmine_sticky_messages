@@ -20,15 +20,26 @@ unless User.current.login == ''
         <ul><li><a href="<%=url_for :controller => 'welcome' %>news/<%= m.id %>"><%= m.title %><% unless m.comments_count == 0 %> [<%= m.comments_count %>]<% end %></a></li></ul>
       <% end %>
     </div>
-<% 
+<%
   end
-  
-  messages = Message
-    .where('sticky = 1 and parent_id is null')
-    .order('created_on desc')
-    .limit(3)
-    .all
-  
+
+
+  if defined?(@project) && @project.present? && @project.persisted?
+    messages = Message
+      .where('sticky = 1 and parent_id is null')
+      .where('board_id in (?) or nm_global = ?', @project.board_ids, true)
+      .order('created_on desc')
+      .limit(3)
+      .all
+  else
+    messages = Message
+      .where('sticky = 1 and parent_id is null')
+      .where('nm_global = ?', true)
+      .order('created_on desc')
+      .limit(3)
+      .all
+  end
+
   unless messages.count == 0
 %>
     <div class="_sticky_messages _sticky_messages-messages" data-flag="2">
@@ -37,7 +48,7 @@ unless User.current.login == ''
         <ul><li><a href="<%=url_for :controller => 'welcome' %>boards/<%= m.board_id %>/topics/<%= m.id %>?r=<%= m.parent_id %>"><%= m.subject %><% unless m.replies_count == 0 %> [<%= m.replies_count %>]<% end %></a></li></ul>
       <% end %>
     </div>
-    
+
 <% end %>
 
     <label id="_sticky_messages-ok"><%= l(:label_ok) %></label>
